@@ -45,7 +45,7 @@ This project is a web-based platform designed to streamline the management of sp
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/rsmyst/IRIS_Web_Rec25_231IT054.git
    ```
 2. Navigate to the project directory:
    ```bash
