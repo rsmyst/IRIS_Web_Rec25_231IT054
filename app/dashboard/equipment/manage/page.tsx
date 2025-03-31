@@ -11,7 +11,8 @@ interface Equipment {
   category: string;
   availability: "available" | "unavailable" | "maintenance";
   quantity: number;
-  condition: string;
+  condition: "new" | "good" | "fair" | "poor";
+  location: string;
 }
 
 export default function ManageEquipmentPage() {
@@ -31,7 +32,8 @@ export default function ManageEquipmentPage() {
     category: "",
     availability: "available",
     quantity: 1,
-    condition: "Good",
+    condition: "good", // Changed to lowercase to match enum
+    location: "",
   });
 
   // Check if user is admin
@@ -88,7 +90,8 @@ export default function ManageEquipmentPage() {
       category: "",
       availability: "available",
       quantity: 1,
-      condition: "Good",
+      condition: "good", // Changed to lowercase to match enum
+      location: "",
     });
     setEditingId(null);
     setIsEditing(false);
@@ -101,6 +104,7 @@ export default function ManageEquipmentPage() {
       availability: item.availability,
       quantity: item.quantity,
       condition: item.condition,
+      location: item.location || "", // Include location field
     });
     setEditingId(item._id);
     setIsEditing(true);
@@ -252,6 +256,24 @@ export default function ManageEquipmentPage() {
 
             <div>
               <label
+                htmlFor="location"
+                className="block text-sm font-medium text-gray-300"
+              >
+                Storage Location
+              </label>
+              <input
+                type="text"
+                name="location"
+                id="location"
+                value={formData.location}
+                onChange={handleInputChange}
+                className="mt-1 block w-full border border-gray-600 bg-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-white"
+                required
+              />
+            </div>
+
+            <div>
+              <label
                 htmlFor="availability"
                 className="block text-sm font-medium text-gray-300"
               >
@@ -358,6 +380,12 @@ export default function ManageEquipmentPage() {
                   scope="col"
                   className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
                 >
+                  Location
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
                   Status
                 </th>
                 <th
@@ -384,7 +412,7 @@ export default function ManageEquipmentPage() {
               {equipment.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={6}
+                    colSpan={7}
                     className="px-6 py-4 text-center text-sm text-gray-400"
                   >
                     No equipment available. Add some above.
@@ -398,6 +426,9 @@ export default function ManageEquipmentPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                       {item.category}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {item.location}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span

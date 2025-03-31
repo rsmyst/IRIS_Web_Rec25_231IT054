@@ -73,8 +73,7 @@ export default function InfrastructurePage() {
       try {
         setCheckingAvailability(true);
         const response = await fetch(
-          `/api/infrastructure/booking?date=${bookingDate}&infrastructureId=${selectedInfra._id}`,
-          { method: "HEAD" }
+          `/api/infrastructure/booking?date=${bookingDate}&infrastructureId=${selectedInfra._id}&checkAvailability=true`
         );
 
         if (!response.ok) {
@@ -85,6 +84,7 @@ export default function InfrastructurePage() {
         setAvailableSlots(data.availableSlots || []);
       } catch (error: any) {
         setError(error.message || "Failed to check availability");
+        setAvailableSlots([]);
       } finally {
         setCheckingAvailability(false);
       }

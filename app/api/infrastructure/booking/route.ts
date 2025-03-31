@@ -22,8 +22,14 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const date = url.searchParams.get("date");
     const infrastructureId = url.searchParams.get("infrastructureId");
+    const checkAvailability = url.searchParams.get("checkAvailability");
 
-    // Build base query
+    // Check if this is an availability check request
+    if (checkAvailability === "true" && date && infrastructureId) {
+      return getAvailability(date, infrastructureId);
+    }
+
+    // Build base query for bookings
     let query: any =
       session.user.role === "admin" ? {} : { user: session.user.id };
 
@@ -56,13 +62,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Get availability for a specific infrastructure and date
-export async function HEAD(request: NextRequest) {
+// Helper function to get availability for a specific infrastructure and date
+async function getAvailability(date: string, infrastructureId: string) {
   try {
-    const url = new URL(request.url);
-    const date = url.searchParams.get("date");
-    const infrastructureId = url.searchParams.get("infrastructureId");
-
     if (!date || !infrastructureId) {
       return NextResponse.json(
         { message: "Date and infrastructureId are required" },

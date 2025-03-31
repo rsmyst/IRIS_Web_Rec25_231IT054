@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { connectToDB } from "@/lib/db";
 import Infrastructure from "@/models/Infrastructure";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 // GET all infrastructure
 export async function GET() {
@@ -21,7 +22,7 @@ export async function GET() {
 // POST new infrastructure (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json(
@@ -73,7 +74,7 @@ export async function POST(request: NextRequest) {
 // PUT to update infrastructure (admin only)
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json(

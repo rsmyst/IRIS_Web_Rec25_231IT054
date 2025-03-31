@@ -2,21 +2,27 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { connectToDB } from "@/lib/db";
 import Equipment from "@/models/Equipment";
+import { authOptions } from "../auth/[...nextauth]/route";
 
 // GET all equipment
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user) {
+      return NextResponse.json(
+        { message: "Unauthorized: Please log in" },
+        { status: 401 }
+      );
+    }
+
     await connectToDB();
-    console.log("Fetching equipment...");
-    const equipment = await Equipment.find({});
-    console.log(
-      `Found ${equipment.length} equipment items:`,
-      equipment.map((item) => ({
-        id: item._id,
-        name: item.name,
-        availability: item.availability,
-      }))
-    );
+
+    // Build base query for equipment
+    let query: any =
+      session.user.role === "admin" ? {} : { user: session.user.id };
+
+    const equipment = await Equipment.find(query);
+
     return NextResponse.json(equipment);
   } catch (error) {
     console.error("Error fetching equipment:", error);
@@ -30,7 +36,7 @@ export async function GET() {
 // POST new equipment (admin only)
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json(
@@ -77,7 +83,7 @@ export async function POST(request: NextRequest) {
 // PUT to update equipment (admin only)
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json(
@@ -143,7 +149,7 @@ export async function PUT(request: NextRequest) {
 // DELETE equipment (admin only)
 export async function DELETE(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
 
     if (!session || session.user.role !== "admin") {
       return NextResponse.json(
