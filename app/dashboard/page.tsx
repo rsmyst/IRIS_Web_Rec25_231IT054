@@ -53,7 +53,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-purple-600 rounded-md p-3">
+              <div className="flex-shrink-0 bg-gray-900 rounded-md p-3">
                 <Image
                   src="/file.svg"
                   width={24}
@@ -88,7 +88,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
+              <div className="flex-shrink-0 bg-gray-900 rounded-md p-3">
                 <Image
                   src="/globe.svg"
                   width={24}
@@ -123,7 +123,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-purple-600 rounded-md p-3">
+              <div className="flex-shrink-0 bg-gray-900 rounded-md p-3">
                 <Image
                   src="/window.svg"
                   width={24}
@@ -134,7 +134,7 @@ export default function Dashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dt className="text-sm font-medium text-gray-400 truncate">
-                  Your Equipment Bookings
+                  Equipment Bookings
                 </dt>
                 <dd className="text-lg font-semibold text-gray-200">
                   {stats.equipmentBookings}
@@ -158,7 +158,7 @@ export default function Dashboard() {
         <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
+              <div className="flex-shrink-0 bg-gray-900 rounded-md p-3">
                 <Image
                   src="/globe.svg"
                   width={24}
@@ -169,7 +169,7 @@ export default function Dashboard() {
               </div>
               <div className="ml-5 w-0 flex-1">
                 <dt className="text-sm font-medium text-gray-400 truncate">
-                  Your Court Bookings
+                  Court Bookings
                 </dt>
                 <dd className="text-lg font-semibold text-gray-200">
                   {stats.infrastructureBookings}

@@ -3,11 +3,13 @@ import { getServerSession } from "next-auth/next";
 import { connectToDB } from "@/lib/db";
 import EquipmentBooking from "@/models/EquipmentBooking";
 import Equipment from "@/models/Equipment";
+import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // GET all bookings (admins see all, students see only their own)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    // Pass authOptions to getServerSession to ensure proper session data extraction
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
         { message: "Unauthorized: Please log in" },
@@ -19,8 +21,8 @@ export async function GET(request: NextRequest) {
 
     // For admin users, return all bookings
     // For students, return only their own bookings
-    const query =
-      session.user.role === "admin" ? {} : { user: session.user.id };
+    const userId = session.user.id;
+    const query = session.user.role === "admin" ? {} : { user: userId };
 
     const bookings = await EquipmentBooking.find(query)
       .populate("user", "name email")
@@ -29,6 +31,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(bookings);
   } catch (error) {
     console.error("Error fetching equipment bookings:", error);
+    // Added detailed error logging for debugging
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return NextResponse.json(
       { message: "Failed to fetch equipment bookings" },
       { status: 500 }
@@ -36,14 +44,27 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST to create new booking request
+// Updated POST handler to use startDate and endDate instead of startTime and endTime
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    // Pass authOptions to getServerSession to ensure proper session data extraction
+    const session = await getServerSession(authOptions);
     if (!session?.user) {
       return NextResponse.json(
         { message: "Unauthorized: Please log in" },
         { status: 401 }
+      );
+    }
+
+    // Added debug log to verify session content
+    console.log("Session content:", session);
+
+    // Ensure user ID is being passed correctly
+    const userId = session.user.id;
+    if (!userId) {
+      return NextResponse.json(
+        { message: "User ID is missing in session" },
+        { status: 400 }
       );
     }
 
@@ -58,12 +79,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { equipmentId, quantity, startTime, endTime } = parsedBody;
+    const { equipmentId, quantity, startDate, endDate } = parsedBody;
 
     // Validation
-    if (!equipmentId || !quantity || !startTime || !endTime) {
+    if (!equipmentId || !quantity || !startDate || !endDate) {
       return NextResponse.json(
-        { message: "All fields are required" },
+        {
+          message:
+            "All fields (equipmentId, quantity, startDate, endDate) are required",
+        },
         { status: 400 }
       );
     }
@@ -95,11 +119,11 @@ export async function POST(request: NextRequest) {
 
     // Create booking request
     const booking = await EquipmentBooking.create({
-      user: session.user.id,
+      user: userId,
       equipment: equipmentId,
       quantity,
-      startTime: new Date(startTime),
-      endTime: new Date(endTime),
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
       status: "pending",
     });
 
@@ -117,6 +141,12 @@ export async function POST(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error creating equipment booking:", error);
+    // Added detailed error logging for debugging
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return NextResponse.json(
       { message: "Failed to create equipment booking" },
       { status: 500 }
@@ -127,7 +157,8 @@ export async function POST(request: NextRequest) {
 // PUT to update booking status (approve/reject) - admin only
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession();
+    // Pass authOptions to getServerSession to ensure proper session data extraction
+    const session = await getServerSession(authOptions);
     if (!session?.user || session.user.role !== "admin") {
       return NextResponse.json(
         { message: "Unauthorized: Admin access required" },
@@ -196,6 +227,12 @@ export async function PUT(request: NextRequest) {
     );
   } catch (error) {
     console.error("Error updating equipment booking:", error);
+    // Added detailed error logging for debugging
+    console.error("Error details:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
     return NextResponse.json(
       { message: "Failed to update equipment booking" },
       { status: 500 }

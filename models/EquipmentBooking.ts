@@ -6,7 +6,6 @@ export interface IEquipmentBooking extends Document {
   quantity: number;
   startDate: Date;
   endDate: Date;
-  purpose: string;
   status:
     | "pending"
     | "approved"
@@ -43,11 +42,6 @@ const EquipmentBookingSchema = new Schema(
     endDate: {
       type: Date,
       required: [true, "End date is required"],
-    },
-    purpose: {
-      type: String,
-      required: [true, "Purpose is required"],
-      trim: true,
     },
     status: {
       type: String,

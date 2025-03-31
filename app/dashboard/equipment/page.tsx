@@ -56,11 +56,20 @@ export default function EquipmentPage() {
     fetchEquipment();
   }, []);
 
-  // Handle equipment booking
+  // Updated the POST request to include the current user's ID
   const handleBookEquipment = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedEquipment) return;
+    // console.log("Session data:", session);
+    console.log("User data:", session?.user);
+
+    // Check for user ID in various possible locations in the session object
+    const userId = session?.user?.id;
+
+    if (!selectedEquipment || !userId) {
+      setError("User is not logged in or equipment is not selected.");
+      return;
+    }
 
     try {
       const response = await fetch("/api/equipment/booking", {
@@ -71,8 +80,9 @@ export default function EquipmentPage() {
         body: JSON.stringify({
           equipmentId: selectedEquipment._id,
           quantity,
-          startTime,
-          endTime,
+          startDate: startTime,
+          endDate: endTime,
+          userId: userId, // Use the extracted userId
         }),
       });
 

@@ -6,16 +6,20 @@ import { useSession } from "next-auth/react";
 
 interface EquipmentBooking {
   _id: string;
-  equipmentId: {
+  equipment: {
     _id: string;
     name: string;
     category: string;
   };
-  userId: string;
+  user: {
+    _id: string;
+    name: string;
+    email: string;
+  };
   quantity: number;
-  startTime: string;
-  endTime: string;
-  status: "pending" | "approved" | "rejected";
+  startDate: string;
+  endDate: string;
+  status: "pending" | "approved" | "rejected" | "returned";
   createdAt: string;
 }
 
@@ -36,6 +40,7 @@ export default function EquipmentBookings() {
         }
 
         const data = await response.json();
+        console.log("Bookings data:", data); // Debug to see the actual data structure
         setBookings(data);
       } catch (error: any) {
         console.error("Error in bookings fetch:", error);
@@ -152,19 +157,19 @@ export default function EquipmentBookings() {
               {bookings.map((booking) => (
                 <tr key={booking._id} className="hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {booking.equipmentId.name}
+                    {booking.equipment?.name || "Unknown Equipment"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {booking.equipmentId.category}
+                    {booking.equipment?.category || "N/A"}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                     {booking.quantity}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {formatDate(booking.startTime)}
+                    {formatDate(booking.startDate)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {formatDate(booking.endTime)}
+                    {formatDate(booking.endDate)}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <span
@@ -177,7 +182,7 @@ export default function EquipmentBookings() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
-                    {new Date(booking.startTime) > new Date() && (
+                    {new Date(booking.startDate) > new Date() && (
                       <button
                         onClick={() => handleCancelBooking(booking._id)}
                         className="text-red-400 hover:text-red-300 focus:outline-none"

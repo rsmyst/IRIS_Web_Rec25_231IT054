@@ -5,7 +5,7 @@ import axios from "axios";
 import Link from "next/link";
 
 interface EquipmentBooking {
-  id: string;
+  _id: string; // Updated to match the API response field
   userId: string;
   userName: string;
   equipmentId: string;
@@ -40,12 +40,13 @@ export default function ReviewEquipmentBookingRequests() {
     fetchBookings();
   }, []);
 
+  // Updated the function to use _id instead of id
   const updateBookingStatus = async (bookingId: string, status: string) => {
     try {
-      await axios.put(`/api/admin/equipment-bookings/${bookingId}`, { status });
+      await axios.put(`/api/admin/equipment-bookings`, { bookingId, status });
       setBookings(
         bookings.map((booking) =>
-          booking.id === bookingId
+          booking._id === bookingId
             ? {
                 ...booking,
                 status: status as "pending" | "approved" | "rejected",
@@ -143,7 +144,7 @@ export default function ReviewEquipmentBookingRequests() {
             </thead>
             <tbody className="divide-y divide-gray-700">
               {filteredBookings.map((booking) => (
-                <tr key={booking.id} className="hover:bg-gray-700">
+                <tr key={booking._id} className="hover:bg-gray-700">
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                     {booking.userName}
                   </td>
@@ -182,7 +183,7 @@ export default function ReviewEquipmentBookingRequests() {
                         <>
                           <button
                             onClick={() =>
-                              updateBookingStatus(booking.id, "approved")
+                              updateBookingStatus(booking._id, "approved")
                             }
                             className="bg-green-600 hover:bg-green-700 text-white py-1 px-3 rounded-md text-xs"
                           >
@@ -190,7 +191,7 @@ export default function ReviewEquipmentBookingRequests() {
                           </button>
                           <button
                             onClick={() =>
-                              updateBookingStatus(booking.id, "rejected")
+                              updateBookingStatus(booking._id, "rejected")
                             }
                             className="bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded-md text-xs"
                           >
@@ -201,7 +202,7 @@ export default function ReviewEquipmentBookingRequests() {
                       {booking.status !== "pending" && (
                         <button
                           onClick={() =>
-                            updateBookingStatus(booking.id, "pending")
+                            updateBookingStatus(booking._id, "pending")
                           }
                           className="bg-yellow-600 hover:bg-yellow-700 text-white py-1 px-3 rounded-md text-xs"
                         >

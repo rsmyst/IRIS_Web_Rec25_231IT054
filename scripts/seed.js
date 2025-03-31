@@ -274,14 +274,15 @@ const infrastructureBookings = [
   },
 ];
 
+// Updated equipmentBookings to align with the new schema
 const equipmentBookings = [
   {
     _id: new ObjectId(),
     user: users[1]._id, // Student One
     equipment: equipment[0]._id, // Badminton Racket
     quantity: 2,
-    startTime: new Date(),
-    endTime: new Date(new Date().getTime() + 60 * 60 * 1000), // 1 hour later
+    startDate: new Date(),
+    endDate: new Date(new Date().getTime() + 60 * 60 * 1000), // 1 hour later
     status: "approved",
     remarks: "Approved by admin",
     createdAt: new Date(),
@@ -292,8 +293,8 @@ const equipmentBookings = [
     user: users[2]._id, // Student Two
     equipment: equipment[2]._id, // Tennis Racket
     quantity: 1,
-    startTime: new Date(),
-    endTime: new Date(new Date().getTime() + 60 * 60 * 1000), // 1 hour later
+    startDate: new Date(),
+    endDate: new Date(new Date().getTime() + 60 * 60 * 1000), // 1 hour later
     status: "pending",
     createdAt: new Date(),
     updatedAt: new Date(),
