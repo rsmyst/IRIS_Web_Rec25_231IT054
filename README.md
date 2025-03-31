@@ -2,7 +2,7 @@
 
 This project is a web-based platform designed to streamline the management of sports equipment and infrastructure at NITK. It provides a seamless experience for students and admins to book, manage, and track sports facilities and equipment.
 
-## Features
+## Implemented Features
 
 ### Equipment Management
 
@@ -21,6 +21,10 @@ This project is a web-based platform designed to streamline the management of sp
 ### Bonus Features (Implemented In App)
 
 - **In depth Analytics Dashboard**: Admins can view usage trends, peak booking hours, and most booked equipment.
+
+### Planned Features:
+
+- **User Deletion by Admin**
 
 ## Technologies Used
 
@@ -67,6 +71,15 @@ Start the development server:
 ```bash
 npm run dev
 ```
+
+### Screenshots:
+
+![Login](screenshots/1.png)
+![Dashboard](screenshots/2.png)
+![Mobile Dashboard](screenshots/3.png)
+![Sports Equipment](screenshots/4.png)
+![Review Court Booking Requests from Admin Side](screenshots/5.png)
+![Analytics](screenshots/6.png)
 
 Also, ensure MongoDB service is running in the background.
 
