@@ -15,13 +15,13 @@ https://github.com/user-attachments/assets/d24580f1-c3b8-4dec-878e-f53222351825
 - **Request Equipment**: Students can request equipment by specifying the quantity and duration.
 - **Approval Process**: Admins can approve or reject equipment requests with comments.
 - **Tracking**: Students can track the status of their requests.
+- **Partial Notifications**: Students receive updates on booking status and reminders before their slot.
 
 ### Infrastructure Booking
 
 - **View Availability**: Students can check real-time availability of sports facilities (e.g., badminton courts).
 - **Book Facilities**: Students can book facilities for specific time slots.
 - **Admin Approval**: Admins can approve or reject booking requests.
-- **Notifications**: Students receive updates on booking status and reminders before their slot.
 
 ### Bonus Features (Implemented In App)
 
@@ -30,6 +30,7 @@ https://github.com/user-attachments/assets/d24580f1-c3b8-4dec-878e-f53222351825
 ### Planned Features:
 
 - **User Deletion by Admin**
+- **Full Notifications Support**
 
 ## Technologies Used
 
