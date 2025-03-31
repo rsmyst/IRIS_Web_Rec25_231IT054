@@ -2,6 +2,10 @@
 
 This project is a web-based platform designed to streamline the management of sports equipment and infrastructure at NITK. It provides a seamless experience for students and admins to book, manage, and track sports facilities and equipment.
 
+### Installation + Demo Run video
+
+[!demo][IRIS_WebRecs2025_231IT054.mp4]
+
 ## Implemented Features
 
 ### Equipment Management
