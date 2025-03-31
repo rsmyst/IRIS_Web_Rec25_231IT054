@@ -6,6 +6,14 @@ This project is a web-based platform designed to streamline the management of sp
 
 https://github.com/user-attachments/assets/d24580f1-c3b8-4dec-878e-f53222351825
 
+#### Test Credentials: 
+Admin: 
+username: janani@nitk.com
+password: 12345678
+
+Student:
+username: student1@example.com
+password: 12345678
 
 ## Implemented Features
 
