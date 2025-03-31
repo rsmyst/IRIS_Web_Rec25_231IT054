@@ -6,6 +6,8 @@ This project is a web-based platform designed to streamline the management of sp
 
 [DemoVideo](IRIS_WebRecs2025_231IT054.mp4)
 
+<video src="IRIS_WebRecs2025_231IT054.mp4" controls width="600"></video>
+
 ## Implemented Features
 
 ### Equipment Management
