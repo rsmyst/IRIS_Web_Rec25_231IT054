@@ -24,12 +24,13 @@ password: 12345678
 - **Approval Process**: Admins can approve or reject equipment requests with comments.
 - **Tracking**: Students can track the status of their requests.
 - **Partial Notifications**: Students receive updates on booking status and reminders before their slot.
+- **Register new students**: Students can register themselves onto the database using their Name, Branch and so on. 
 
 ### Infrastructure Booking
 
 - **View Availability**: Students can check real-time availability of sports facilities (e.g., badminton courts).
-- **Book Facilities**: Students can book facilities for specific time slots.
-- **Admin Approval**: Admins can approve or reject booking requests.
+- **Book Facilities**: Students can book facilities for specific time slots (1hour slots).
+- **Admin Approval**: Admins can approve or reject booking requests or convert accepted requests back into pending requests based on situation.
 
 ### Bonus Features (Implemented In App)
 
@@ -38,7 +39,7 @@ password: 12345678
 ### Planned Features:
 
 - **User Deletion by Admin**
-- **Full Notifications Support**
+- **Full Notifications Support with mailers**
 
 ## Technologies Used
 
@@ -46,7 +47,7 @@ password: 12345678
 - **Backend**: Node.js, Express.js
 - **Database**: MongoDB
 - **Authentication**: NextAuth.js
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS, Chart.js
 
 ## Known Bugs
 
