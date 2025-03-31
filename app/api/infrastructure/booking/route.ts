@@ -4,21 +4,17 @@ import { connectToDB } from "@/lib/db";
 import InfrastructureBooking from "@/models/InfrastructureBooking";
 import Infrastructure from "@/models/Infrastructure";
 import NotificationService from "@/lib/notificationService";
-import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 
 // GET all bookings (admins see all, students see only their own)
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     if (!session?.user) {
       return NextResponse.json(
         { message: "Unauthorized: Please log in" },
         { status: 401 }
       );
     }
-
-    // Add debug logging
-    console.log("Session in infrastructure booking GET:", session);
 
     await connectToDB();
 
@@ -160,23 +156,11 @@ async function getAvailability(date: string, infrastructureId: string) {
 // POST to create new booking request
 export async function POST(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     if (!session?.user) {
       return NextResponse.json(
         { message: "Unauthorized: Please log in" },
         { status: 401 }
-      );
-    }
-
-    // Add debug logging
-    console.log("Session in infrastructure booking POST:", session);
-
-    // Ensure user ID is available
-    const userId = session.user.id;
-    if (!userId) {
-      return NextResponse.json(
-        { message: "User ID is missing in session" },
-        { status: 400 }
       );
     }
 
@@ -212,7 +196,7 @@ export async function POST(request: NextRequest) {
     // Check if user already has a booking for this date (one booking per day rule)
     const bookingDate = new Date(date);
     const existingBooking = await InfrastructureBooking.findOne({
-      user: userId,
+      user: session.user.id,
       date: {
         $gte: new Date(bookingDate.setHours(0, 0, 0, 0)),
         $lt: new Date(bookingDate.setHours(23, 59, 59, 999)),
@@ -274,7 +258,7 @@ export async function POST(request: NextRequest) {
 
     // Create booking request
     const booking = await InfrastructureBooking.create({
-      user: userId,
+      user: session.user.id,
       infrastructure: infrastructureId,
       date: new Date(date),
       startTime,
@@ -291,7 +275,7 @@ export async function POST(request: NextRequest) {
     // Create waitlist notification if on waitlist
     if (waitlistPosition !== null) {
       await NotificationService.createWaitlistNotification(
-        userId,
+        session.user.id,
         booking._id.toString(),
         infrastructure.name,
         startTime,
@@ -323,7 +307,7 @@ export async function POST(request: NextRequest) {
 // PUT to update booking status (approve/reject) - admin only
 export async function PUT(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await getServerSession();
     if (!session?.user || session.user.role !== "admin") {
       return NextResponse.json(
         { message: "Unauthorized: Admin access required" },
@@ -367,20 +351,18 @@ export async function PUT(request: NextRequest) {
       .populate("infrastructure", "name location");
 
     // Create notification for status change
-    if (booking.user && booking.user._id) {
-      await NotificationService.createBookingStatusNotification(
-        booking.user._id.toString(),
-        bookingId,
-        status,
-        booking.infrastructure.name,
-        booking.startTime,
-        new Date(booking.date).toLocaleDateString(),
-        "InfrastructureBooking"
-      );
-    }
+    await NotificationService.createBookingStatusNotification(
+      booking.user._id.toString(),
+      bookingId,
+      status,
+      booking.infrastructure.name,
+      booking.startTime,
+      new Date(booking.date).toLocaleDateString(),
+      "InfrastructureBooking"
+    );
 
     // If the booking is approved, schedule a reminder for 30 minutes before
-    if (status === "approved" && booking.user && booking.user._id) {
+    if (status === "approved") {
       // Create a Date object for the appointment time
       const bookingDateTime = new Date(booking.date);
       const [hours, minutes] = booking.startTime.split(":").map(Number);
@@ -413,7 +395,7 @@ export async function PUT(request: NextRequest) {
         .populate("user", "name email")
         .populate("infrastructure", "name location");
 
-      if (waitlistBooking && waitlistBooking.user && waitlistBooking.user._id) {
+      if (waitlistBooking) {
         await InfrastructureBooking.findByIdAndUpdate(waitlistBooking._id, {
           waitlistPosition: null,
           status: "pending",

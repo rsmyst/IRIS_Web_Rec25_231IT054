@@ -53,12 +53,13 @@ This project is a web-based platform designed to streamline the management of sp
    ```
 2. Navigate to the project directory:
    ```bash
-   cd iris_web
+   cd IRIS_Web_Rec25_231IT054
    ```
 3. Install dependencies:
    ```bash
    npm install
    ```
+   Create .env file
 4. Seed Data (for testing purposes including test accounts):
    ```node
    node scripts/seed.js
