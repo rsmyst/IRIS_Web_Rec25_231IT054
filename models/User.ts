@@ -10,42 +10,16 @@ export interface IUser extends Document {
   updatedAt: Date;
 }
 
-const UserSchema = new Schema(
+const UserSchema = new Schema<IUser>(
   {
-    name: {
-      type: String,
-      required: [true, "Name is required"],
-      trim: true,
-    },
-    email: {
-      type: String,
-      required: [true, "Email is required"],
-      unique: true,
-      trim: true,
-      lowercase: true,
-      match: [/^\S+@\S+\.\S+$/, "Please use a valid email address"],
-    },
-    password: {
-      type: String,
-      required: [true, "Password is required"],
-      minlength: [6, "Password should be at least 6 characters"],
-    },
-    branch: {
-      type: String,
-      trim: true,
-    },
-    role: {
-      type: String,
-      enum: ["admin", "student"],
-      default: "student",
-    },
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    branch: { type: String },
+    role: { type: String, enum: ["admin", "student"], default: "student" },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-// Prevent duplicate model compilation error in development with hot reload
-const User = mongoose.models.User || mongoose.model<IUser>("User", UserSchema);
-
-export default User;
+export default mongoose.models.User ||
+  mongoose.model<IUser>("User", UserSchema);

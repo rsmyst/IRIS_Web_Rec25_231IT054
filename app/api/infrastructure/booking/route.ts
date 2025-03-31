@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { connectToDB } from "@/lib/db";
 import InfrastructureBooking from "@/models/InfrastructureBooking";
 import Infrastructure from "@/models/Infrastructure";
+import NotificationService from "@/lib/notificationService";
 
 // GET all bookings (admins see all, students see only their own)
 export async function GET(request: NextRequest) {
@@ -23,7 +24,8 @@ export async function GET(request: NextRequest) {
     const infrastructureId = url.searchParams.get("infrastructureId");
 
     // Build base query
-    let query: any = session.user.role === "admin" ? {} : { user: session.user.id };
+    let query: any =
+      session.user.role === "admin" ? {} : { user: session.user.id };
 
     // Add date filter if provided
     if (date) {
@@ -71,7 +73,7 @@ export async function HEAD(request: NextRequest) {
     await connectToDB();
 
     const bookingDate = new Date(date);
-    
+
     // Get the infrastructure details
     const infrastructure = await Infrastructure.findById(infrastructureId);
     if (!infrastructure) {
@@ -89,34 +91,52 @@ export async function HEAD(request: NextRequest) {
         $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
       },
       status: { $in: ["pending", "approved"] },
-    }).sort('startTime');
+    }).sort("startTime");
 
     // Generate available time slots
-    const [openHour, openMinute] = infrastructure.operatingHours.open.split(':').map(Number);
-    const [closeHour, closeMinute] = infrastructure.operatingHours.close.split(':').map(Number);
-    
+    const [openHour, openMinute] = infrastructure.operatingHours.open
+      .split(":")
+      .map(Number);
+    const [closeHour, closeMinute] = infrastructure.operatingHours.close
+      .split(":")
+      .map(Number);
+
     let availableSlots = [];
     let currentHour = openHour;
     let currentMinute = openMinute;
 
-    while (currentHour < closeHour || (currentHour === closeHour && currentMinute < closeMinute)) {
+    while (
+      currentHour < closeHour ||
+      (currentHour === closeHour && currentMinute < closeMinute)
+    ) {
       const endHour = currentMinute === 0 ? currentHour + 1 : currentHour;
       const endMinute = currentMinute === 0 ? 0 : currentMinute;
-      
+
       // Format as HH:MM
-      const startTime = `${currentHour.toString().padStart(2, '0')}:${currentMinute.toString().padStart(2, '0')}`;
-      const endTime = `${endHour.toString().padStart(2, '0')}:${endMinute.toString().padStart(2, '0')}`;
-      
+      const startTime = `${currentHour
+        .toString()
+        .padStart(2, "0")}:${currentMinute.toString().padStart(2, "0")}`;
+      const endTime = `${endHour.toString().padStart(2, "0")}:${endMinute
+        .toString()
+        .padStart(2, "0")}`;
+
       // Check if this slot is booked
-      const isBooked = bookings.some(booking => booking.startTime === startTime);
-      
+      const isBooked = bookings.some(
+        (booking) => booking.startTime === startTime
+      );
+
       availableSlots.push({
         startTime,
         endTime,
         isAvailable: !isBooked,
-        waitlistCount: isBooked ? bookings.filter(b => b.startTime === startTime && b.waitlistPosition !== undefined).length : 0
+        waitlistCount: isBooked
+          ? bookings.filter(
+              (b) =>
+                b.startTime === startTime && b.waitlistPosition !== undefined
+            ).length
+          : 0,
       });
-      
+
       // Move to next hour
       currentHour++;
     }
@@ -142,7 +162,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { infrastructureId, date, startTime, endTime, joinWaitlist } = await request.json();
+    const { infrastructureId, date, startTime, endTime, joinWaitlist } =
+      await request.json();
 
     // Validation
     if (!infrastructureId || !date || !startTime || !endTime) {
@@ -195,7 +216,7 @@ export async function POST(request: NextRequest) {
       infrastructure: infrastructureId,
       date: {
         $gte: new Date(bookingDate.setHours(0, 0, 0, 0)),
-        $lt: new Date(bookingDate.setHours(23, 59, 59, 999)),
+        $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
       },
       startTime,
       status: { $in: ["pending", "approved"] },
@@ -205,16 +226,17 @@ export async function POST(request: NextRequest) {
     // If slot is booked and user doesn't want to join waitlist, return error
     if (slotBooked && !joinWaitlist) {
       return NextResponse.json(
-        { 
-          message: "This slot is already booked. Would you like to join the waitlist?",
-          waitlistAvailable: true
+        {
+          message:
+            "This slot is already booked. Would you like to join the waitlist?",
+          waitlistAvailable: true,
         },
         { status: 409 }
       );
     }
 
     let waitlistPosition = null;
-    
+
     // If slot is booked and user wants to join waitlist
     if (slotBooked && joinWaitlist) {
       // Find the highest waitlist position for this slot
@@ -222,13 +244,13 @@ export async function POST(request: NextRequest) {
         infrastructure: infrastructureId,
         date: {
           $gte: new Date(bookingDate.setHours(0, 0, 0, 0)),
-          $lt: new Date(bookingDate.setHours(23, 59, 59, 999)),
+          $lt: new Date(new Date(date).setHours(23, 59, 59, 999)),
         },
         startTime,
       }).sort({ waitlistPosition: -1 });
 
-      waitlistPosition = highestWaitlist?.waitlistPosition 
-        ? highestWaitlist.waitlistPosition + 1 
+      waitlistPosition = highestWaitlist?.waitlistPosition
+        ? highestWaitlist.waitlistPosition + 1
         : 1;
     }
 
@@ -240,7 +262,7 @@ export async function POST(request: NextRequest) {
       startTime,
       endTime,
       status: "pending",
-      waitlistPosition
+      waitlistPosition,
     });
 
     // Populate booking with user and infrastructure details for response
@@ -248,11 +270,25 @@ export async function POST(request: NextRequest) {
       .populate("user", "name email")
       .populate("infrastructure", "name location");
 
+    // Create waitlist notification if on waitlist
+    if (waitlistPosition !== null) {
+      await NotificationService.createWaitlistNotification(
+        session.user.id,
+        booking._id.toString(),
+        infrastructure.name,
+        startTime,
+        new Date(date).toLocaleDateString(),
+        waitlistPosition,
+        "InfrastructureBooking"
+      );
+    }
+
     return NextResponse.json(
       {
-        message: waitlistPosition !== null
-          ? `You have been added to the waitlist at position #${waitlistPosition}`
-          : "Booking request submitted successfully",
+        message:
+          waitlistPosition !== null
+            ? `You have been added to the waitlist at position #${waitlistPosition}`
+            : "Booking request submitted successfully",
         booking: populatedBooking,
       },
       { status: 201 }
@@ -292,7 +328,10 @@ export async function PUT(request: NextRequest) {
 
     await connectToDB();
 
-    const booking = await InfrastructureBooking.findById(bookingId);
+    const booking = await InfrastructureBooking.findById(bookingId)
+      .populate("user", "name email")
+      .populate("infrastructure", "name location");
+
     if (!booking) {
       return NextResponse.json(
         { message: "Booking not found" },
@@ -308,29 +347,68 @@ export async function PUT(request: NextRequest) {
     )
       .populate("user", "name email")
       .populate("infrastructure", "name location");
-      
+
+    // Create notification for status change
+    await NotificationService.createBookingStatusNotification(
+      booking.user._id.toString(),
+      bookingId,
+      status,
+      booking.infrastructure.name,
+      booking.startTime,
+      new Date(booking.date).toLocaleDateString(),
+      "InfrastructureBooking"
+    );
+
+    // If the booking is approved, schedule a reminder for 30 minutes before
+    if (status === "approved") {
+      // Create a Date object for the appointment time
+      const bookingDateTime = new Date(booking.date);
+      const [hours, minutes] = booking.startTime.split(":").map(Number);
+      bookingDateTime.setHours(hours, minutes, 0, 0);
+
+      await NotificationService.scheduleBookingReminder(
+        booking.user._id.toString(),
+        bookingId,
+        booking.infrastructure.name,
+        booking.startTime,
+        new Date(booking.date).toLocaleDateString(),
+        bookingDateTime,
+        "InfrastructureBooking"
+      );
+    }
+
     // If a booking was canceled or rejected and it wasn't on waitlist,
     // promote the first waitlisted booking to pending status
-    if ((status === "canceled" || status === "rejected") && !booking.waitlistPosition) {
+    if (
+      (status === "canceled" || status === "rejected") &&
+      !booking.waitlistPosition
+    ) {
       const waitlistBooking = await InfrastructureBooking.findOne({
-        infrastructure: booking.infrastructure,
+        infrastructure: booking.infrastructure._id,
         date: booking.date,
         startTime: booking.startTime,
         waitlistPosition: { $ne: null },
-      }).sort({ waitlistPosition: 1 });
-      
+      })
+        .sort({ waitlistPosition: 1 })
+        .populate("user", "name email")
+        .populate("infrastructure", "name location");
+
       if (waitlistBooking) {
-        await InfrastructureBooking.findByIdAndUpdate(
-          waitlistBooking._id,
-          { 
-            waitlistPosition: null, 
-            status: "pending",
-            remarks: "Promoted from waitlist"
-          }
+        await InfrastructureBooking.findByIdAndUpdate(waitlistBooking._id, {
+          waitlistPosition: null,
+          status: "pending",
+          remarks: "Promoted from waitlist",
+        });
+
+        // Send notification about promotion from waitlist
+        await NotificationService.createWaitlistPromotionNotification(
+          waitlistBooking.user._id.toString(),
+          waitlistBooking._id.toString(),
+          waitlistBooking.infrastructure.name,
+          waitlistBooking.startTime,
+          new Date(waitlistBooking.date).toLocaleDateString(),
+          "InfrastructureBooking"
         );
-        
-        // Here you would send a notification that they've been promoted from waitlist
-        // This will be implemented in the notification system
       }
     }
 

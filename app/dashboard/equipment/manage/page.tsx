@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 interface Equipment {
   _id: string;
@@ -154,8 +155,8 @@ export default function ManageEquipmentPage() {
 
   if (loading || status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -163,7 +164,7 @@ export default function ManageEquipmentPage() {
   if (!isAdmin) {
     return (
       <div
-        className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative"
+        className="bg-red-900 text-red-100 border border-red-700 px-4 py-3 rounded-md"
         role="alert"
       >
         <span className="block sm:inline">
@@ -174,18 +175,28 @@ export default function ManageEquipmentPage() {
   }
 
   return (
-    <div className="space-y-8">
-      <h1 className="text-3xl font-semibold mb-6">Manage Equipment</h1>
+    <div className="bg-gray-900 text-gray-100 min-h-screen p-6 rounded-lg space-y-8">
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-3xl font-semibold text-purple-300">
+          Manage Equipment
+        </h1>
+        <Link
+          href="/dashboard"
+          className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-white text-sm"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
 
       {/* Form for adding/editing equipment */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
-        <h2 className="text-xl font-medium mb-4">
+      <div className="bg-gray-800 shadow-md overflow-hidden sm:rounded-lg p-6 border border-gray-700">
+        <h2 className="text-xl font-medium mb-4 text-purple-300">
           {editingId ? "Edit Equipment" : "Add New Equipment"}
         </h2>
 
         {error && (
           <div
-            className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
+            className="bg-red-900 border border-red-700 text-white px-4 py-3 rounded-md mb-4"
             role="alert"
           >
             <span className="block sm:inline">{error}</span>
@@ -194,7 +205,7 @@ export default function ManageEquipmentPage() {
 
         {success && (
           <div
-            className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4"
+            className="bg-green-900 border border-green-700 text-green-100 px-4 py-3 rounded-md mb-4"
             role="alert"
           >
             <span className="block sm:inline">{success}</span>
@@ -206,7 +217,7 @@ export default function ManageEquipmentPage() {
             <div>
               <label
                 htmlFor="name"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-300"
               >
                 Equipment Name
               </label>
@@ -216,7 +227,7 @@ export default function ManageEquipmentPage() {
                 id="name"
                 value={formData.name}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-600 bg-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-white"
                 required
               />
             </div>
@@ -224,7 +235,7 @@ export default function ManageEquipmentPage() {
             <div>
               <label
                 htmlFor="category"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-300"
               >
                 Category
               </label>
@@ -234,7 +245,7 @@ export default function ManageEquipmentPage() {
                 id="category"
                 value={formData.category}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-600 bg-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-white"
                 required
               />
             </div>
@@ -242,7 +253,7 @@ export default function ManageEquipmentPage() {
             <div>
               <label
                 htmlFor="availability"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-300"
               >
                 Availability
               </label>
@@ -251,7 +262,7 @@ export default function ManageEquipmentPage() {
                 id="availability"
                 value={formData.availability}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-600 bg-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-white"
               >
                 <option value="available">Available</option>
                 <option value="unavailable">Unavailable</option>
@@ -262,7 +273,7 @@ export default function ManageEquipmentPage() {
             <div>
               <label
                 htmlFor="quantity"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-300"
               >
                 Quantity
               </label>
@@ -273,7 +284,7 @@ export default function ManageEquipmentPage() {
                 min="0"
                 value={formData.quantity}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-600 bg-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-white"
                 required
               />
             </div>
@@ -281,7 +292,7 @@ export default function ManageEquipmentPage() {
             <div>
               <label
                 htmlFor="condition"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-gray-300"
               >
                 Condition
               </label>
@@ -291,7 +302,7 @@ export default function ManageEquipmentPage() {
                 id="condition"
                 value={formData.condition}
                 onChange={handleInputChange}
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-600 bg-gray-700 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-purple-500 focus:border-purple-500 sm:text-sm text-white"
                 required
               />
             </div>
@@ -302,14 +313,14 @@ export default function ManageEquipmentPage() {
               <button
                 type="button"
                 onClick={resetForm}
-                className="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex justify-center py-2 px-4 border border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-200 bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
               >
                 Cancel
               </button>
             )}
             <button
               type="submit"
-              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+              className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
             >
               {editingId ? "Update Equipment" : "Add Equipment"}
             </button>
@@ -318,110 +329,108 @@ export default function ManageEquipmentPage() {
       </div>
 
       {/* Equipment List */}
-      <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-        <div className="px-4 py-5 sm:px-6">
-          <h3 className="text-lg leading-6 font-medium text-gray-900">
+      <div className="bg-gray-800 shadow-md overflow-hidden sm:rounded-lg border border-gray-700">
+        <div className="px-4 py-5 sm:px-6 border-b border-gray-700">
+          <h3 className="text-lg leading-6 font-medium text-purple-300">
             Equipment Inventory
           </h3>
-          <p className="mt-1 max-w-2xl text-sm text-gray-500">
+          <p className="mt-1 max-w-2xl text-sm text-gray-400">
             All equipment items available in the sports department.
           </p>
         </div>
-        <div className="border-t border-gray-200">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-700">
+            <thead className="bg-gray-700">
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
+                  Name
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
+                  Category
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
+                  Quantity
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
+                  Condition
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-gray-800 divide-y divide-gray-700">
+              {equipment.length === 0 ? (
                 <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  <td
+                    colSpan={6}
+                    className="px-6 py-4 text-center text-sm text-gray-400"
                   >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Category
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Quantity
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Condition
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
+                    No equipment available. Add some above.
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {equipment.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan={6}
-                      className="px-6 py-4 text-center text-sm text-gray-500"
-                    >
-                      No equipment available. Add some above.
+              ) : (
+                equipment.map((item) => (
+                  <tr key={item._id} className="hover:bg-gray-700">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">
+                      {item.name}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {item.category}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                          item.availability === "available"
+                            ? "bg-green-800 text-green-100"
+                            : item.availability === "maintenance"
+                            ? "bg-yellow-800 text-yellow-100"
+                            : "bg-red-800 text-red-100"
+                        }`}
+                      >
+                        {item.availability}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {item.quantity}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                      {item.condition}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                      <button
+                        onClick={() => handleEditEquipment(item)}
+                        className="text-purple-400 hover:text-purple-300"
+                      >
+                        Edit
+                      </button>
                     </td>
                   </tr>
-                ) : (
-                  equipment.map((item) => (
-                    <tr key={item._id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        {item.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.category}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            item.availability === "available"
-                              ? "bg-green-100 text-green-800"
-                              : item.availability === "maintenance"
-                              ? "bg-yellow-100 text-yellow-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {item.availability}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.quantity}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {item.condition}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleEditEquipment(item)}
-                          className="text-indigo-600 hover:text-indigo-900"
-                        >
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

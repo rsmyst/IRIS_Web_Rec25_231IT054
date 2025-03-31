@@ -39,26 +39,26 @@ const InfrastructureBookingSchema = new Schema<IInfrastructureBooking>(
 InfrastructureBookingSchema.index({ user: 1, date: 1 }, { unique: true });
 
 // Validate that booking is for a 1-hour slot
-InfrastructureBookingSchema.pre('validate', function(next) {
+InfrastructureBookingSchema.pre("validate", function (next) {
   const booking = this as IInfrastructureBooking;
-  
+
   // Parse times into hours and minutes
-  const startParts = booking.startTime.split(':').map(Number);
-  const endParts = booking.endTime.split(':').map(Number);
-  
+  const startParts = booking.startTime.split(":").map(Number);
+  const endParts = booking.endTime.split(":").map(Number);
+
   // Convert to minutes for easier calculation
   const startMinutes = startParts[0] * 60 + startParts[1];
   const endMinutes = endParts[0] * 60 + endParts[1];
-  
+
   // Calculate the difference in minutes
   const durationMinutes = endMinutes - startMinutes;
-  
+
   // Check if the duration is exactly 60 minutes (1 hour)
   if (durationMinutes !== 60) {
-    const error = new Error('Booking must be for exactly 1 hour');
+    const error = new Error("Booking must be for exactly 1 hour");
     return next(error);
   }
-  
+
   next();
 });
 

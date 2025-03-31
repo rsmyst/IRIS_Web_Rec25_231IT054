@@ -47,7 +47,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { equipmentId, quantity, startTime, endTime } = await request.json();
+    const body = await request.text();
+    let parsedBody;
+    try {
+      parsedBody = JSON.parse(body);
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid JSON input" },
+        { status: 400 }
+      );
+    }
+
+    const { equipmentId, quantity, startTime, endTime } = parsedBody;
 
     // Validation
     if (!equipmentId || !quantity || !startTime || !endTime) {

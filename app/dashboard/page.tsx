@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import axios from "axios";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function Dashboard() {
   const { data: session } = useSession();
@@ -22,14 +24,8 @@ export default function Dashboard() {
     // Fetch statistics data
     const fetchStats = async () => {
       try {
-        // In a real application, these would be separate API calls
-        // For now, we'll just simulate some data
-        setStats({
-          equipmentCount: 25,
-          infrastructureCount: 8,
-          equipmentBookings: 12,
-          infrastructureBookings: 6,
-        });
+        const response = await axios.get("/api/dashboard/stats");
+        setStats(response.data);
       } catch (error) {
         console.error("Error fetching stats:", error);
       }
@@ -39,14 +35,14 @@ export default function Dashboard() {
   }, [session]);
 
   return (
-    <div>
-      <h1 className="text-3xl font-semibold mb-6">Dashboard</h1>
+    <div className="bg-gray-900 text-gray-100 min-h-screen p-6 rounded-lg">
+      <h1 className="text-3xl font-semibold mb-6 text-purple-300">Dashboard</h1>
 
       <div className="mb-8">
-        <h2 className="text-xl font-medium mb-4">
+        <h2 className="text-xl font-medium mb-4 text-gray-200">
           Welcome, {session?.user?.name}!
         </h2>
-        <p className="text-gray-600">
+        <p className="text-gray-400">
           Use the navigation menu to manage sports equipment and infrastructure
           bookings.
         </p>
@@ -54,269 +50,246 @@ export default function Dashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div className="bg-white overflow-hidden shadow rounded-lg">
+        <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
           <div className="px-4 py-5 sm:p-6">
             <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg
+              <div className="flex-shrink-0 bg-purple-600 rounded-md p-3">
+                <Image
+                  src="/file.svg"
+                  width={24}
+                  height={24}
+                  alt="Equipment"
                   className="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                  />
-                </svg>
+                />
               </div>
               <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Equipment Items
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      {stats.equipmentCount}
-                    </div>
-                  </dd>
-                </dl>
+                <dt className="text-sm font-medium text-gray-400 truncate">
+                  Total Equipment
+                </dt>
+                <dd className="text-lg font-semibold text-gray-200">
+                  {stats.equipmentCount}
+                </dd>
               </div>
             </div>
           </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
+          <div className="bg-gray-700 px-4 py-4 sm:px-6">
+            <Link
+              href="/dashboard/equipment"
+              className="text-sm font-medium text-purple-300 hover:text-purple-200"
+            >
+              View all equipment
+              <span className="ml-2" aria-hidden="true">
+                &rarr;
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
+                <Image
+                  src="/globe.svg"
+                  width={24}
+                  height={24}
+                  alt="Infrastructure"
+                  className="h-6 w-6 text-white"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-400 truncate">
+                  Available Courts & Facilities
+                </dt>
+                <dd className="text-lg font-semibold text-gray-200">
+                  {stats.infrastructureCount}
+                </dd>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-700 px-4 py-4 sm:px-6">
+            <Link
+              href="/dashboard/infrastructure"
+              className="text-sm font-medium text-purple-300 hover:text-purple-200"
+            >
+              View all facilities
+              <span className="ml-2" aria-hidden="true">
+                &rarr;
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-purple-600 rounded-md p-3">
+                <Image
+                  src="/window.svg"
+                  width={24}
+                  height={24}
+                  alt="Equipment Bookings"
+                  className="h-6 w-6 text-white"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-400 truncate">
+                  Your Equipment Bookings
+                </dt>
+                <dd className="text-lg font-semibold text-gray-200">
+                  {stats.equipmentBookings}
+                </dd>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-700 px-4 py-4 sm:px-6">
+            <Link
+              href="/dashboard/equipment/bookings"
+              className="text-sm font-medium text-purple-300 hover:text-purple-200"
+            >
+              View your bookings
+              <span className="ml-2" aria-hidden="true">
+                &rarr;
+              </span>
+            </Link>
+          </div>
+        </div>
+
+        <div className="bg-gray-800 overflow-hidden shadow-md rounded-lg border border-gray-700">
+          <div className="px-4 py-5 sm:p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 bg-indigo-600 rounded-md p-3">
+                <Image
+                  src="/globe.svg"
+                  width={24}
+                  height={24}
+                  alt="Court Bookings"
+                  className="h-6 w-6 text-white"
+                />
+              </div>
+              <div className="ml-5 w-0 flex-1">
+                <dt className="text-sm font-medium text-gray-400 truncate">
+                  Your Court Bookings
+                </dt>
+                <dd className="text-lg font-semibold text-gray-200">
+                  {stats.infrastructureBookings}
+                </dd>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-700 px-4 py-4 sm:px-6">
+            <Link
+              href="/dashboard/infrastructure/bookings"
+              className="text-sm font-medium text-purple-300 hover:text-purple-200"
+            >
+              View your bookings
+              <span className="ml-2" aria-hidden="true">
+                &rarr;
+              </span>
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-gray-800 shadow-md overflow-hidden rounded-lg border border-gray-700">
+        <div className="px-4 py-5 border-b border-gray-700 sm:px-6">
+          <h3 className="text-lg leading-6 font-medium text-purple-300">
+            Facility Management
+          </h3>
+        </div>
+        <div className="px-4 py-5 sm:p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+              <h4 className="text-md font-medium mb-3 text-gray-200">
+                Sports Equipment
+              </h4>
+              <p className="text-sm text-gray-400 mb-4">
+                Browse and book available sports equipment for your activities
+              </p>
               <Link
                 href="/dashboard/equipment"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="inline-block bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-sm text-white"
               >
-                View all equipment <span aria-hidden="true">&rarr;</span>
+                Browse Equipment
               </Link>
             </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg
-                  className="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                  />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    Sports Facilities
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      {stats.infrastructureCount}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
+            <div className="bg-gray-700 p-4 rounded-lg border border-gray-600">
+              <h4 className="text-md font-medium mb-3 text-gray-200">
+                Courts & Facilities
+              </h4>
+              <p className="text-sm text-gray-400 mb-4">
+                Book sports courts and training facilities for teams and
+                personal use
+              </p>
               <Link
                 href="/dashboard/infrastructure"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
+                className="inline-block bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-sm text-white"
               >
-                View all facilities <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg
-                  className="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    My Equipment Bookings
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      {stats.equipmentBookings}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link
-                href="/dashboard/equipment/bookings"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View all bookings <span aria-hidden="true">&rarr;</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-white overflow-hidden shadow rounded-lg">
-          <div className="px-4 py-5 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-indigo-500 rounded-md p-3">
-                <svg
-                  className="h-6 w-6 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-5 w-0 flex-1">
-                <dl>
-                  <dt className="text-sm font-medium text-gray-500 truncate">
-                    My Court Bookings
-                  </dt>
-                  <dd className="flex items-baseline">
-                    <div className="text-2xl font-semibold text-gray-900">
-                      {stats.infrastructureBookings}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-          <div className="bg-gray-50 px-4 py-4 sm:px-6">
-            <div className="text-sm">
-              <Link
-                href="/dashboard/infrastructure/bookings"
-                className="font-medium text-indigo-600 hover:text-indigo-500"
-              >
-                View all bookings <span aria-hidden="true">&rarr;</span>
+                Browse Facilities
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick Access Sections */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Equipment Management
+      {/* Admin Section */}
+      {isAdmin && (
+        <div className="mt-8 bg-gray-800 shadow-md overflow-hidden rounded-lg border border-gray-700">
+          <div className="px-4 py-5 border-b border-gray-700 sm:px-6">
+            <h3 className="text-lg leading-6 font-medium text-purple-300">
+              Admin Panel
             </h3>
           </div>
           <div className="px-4 py-5 sm:p-6">
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Link
-                href="/dashboard/equipment"
-                className="block text-indigo-600 hover:text-indigo-500"
+                href="/dashboard/admin/users"
+                className="bg-gray-700 p-4 rounded-lg border border-gray-600 hover:bg-gray-600"
               >
-                Browse available equipment
+                <h4 className="text-md font-medium mb-2 text-gray-200">
+                  Manage Users
+                </h4>
+                <p className="text-xs text-gray-400">
+                  View and manage user accounts and permissions
+                </p>
               </Link>
               <Link
-                href="/dashboard/equipment/bookings"
-                className="block text-indigo-600 hover:text-indigo-500"
+                href="/dashboard/admin/court-bookings"
+                className="bg-gray-700 p-4 rounded-lg border border-gray-600 hover:bg-gray-600"
               >
-                View your equipment bookings
+                <h4 className="text-md font-medium mb-2 text-gray-200">
+                  Court Bookings
+                </h4>
+                <p className="text-xs text-gray-400">
+                  Review and approve court booking requests
+                </p>
               </Link>
-              {isAdmin && (
-                <>
-                  <Link
-                    href="/dashboard/equipment/manage"
-                    className="block text-indigo-600 hover:text-indigo-500"
-                  >
-                    Manage equipment inventory
-                  </Link>
-                  <Link
-                    href="/dashboard/admin/equipment-requests"
-                    className="block text-indigo-600 hover:text-indigo-500"
-                  >
-                    Review equipment requests
-                  </Link>
-                </>
-              )}
+              <Link
+                href="/dashboard/admin/equipment-bookings"
+                className="bg-gray-700 p-4 rounded-lg border border-gray-600 hover:bg-gray-600"
+              >
+                <h4 className="text-md font-medium mb-2 text-gray-200">
+                  Equipment Bookings
+                </h4>
+                <p className="text-xs text-gray-400">
+                  Review and approve equipment booking requests
+                </p>
+              </Link>
+              <Link
+                href="/dashboard/admin/analytics"
+                className="bg-gray-700 p-4 rounded-lg border border-gray-600 hover:bg-gray-600"
+              >
+                <h4 className="text-md font-medium mb-2 text-gray-200">
+                  Analytics
+                </h4>
+                <p className="text-xs text-gray-400">
+                  View usage statistics and booking trends
+                </p>
+              </Link>
             </div>
           </div>
         </div>
-
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="px-4 py-5 border-b border-gray-200 sm:px-6">
-            <h3 className="text-lg leading-6 font-medium text-gray-900">
-              Facility Management
-            </h3>
-          </div>
-          <div className="px-4 py-5 sm:p-6">
-            <div className="space-y-4">
-              <Link
-                href="/dashboard/infrastructure"
-                className="block text-indigo-600 hover:text-indigo-500"
-              >
-                Browse available facilities
-              </Link>
-              <Link
-                href="/dashboard/infrastructure/bookings"
-                className="block text-indigo-600 hover:text-indigo-500"
-              >
-                View your court bookings
-              </Link>
-              {isAdmin && (
-                <>
-                  <Link
-                    href="/dashboard/infrastructure/manage"
-                    className="block text-indigo-600 hover:text-indigo-500"
-                  >
-                    Manage facilities
-                  </Link>
-                  <Link
-                    href="/dashboard/admin/court-bookings"
-                    className="block text-indigo-600 hover:text-indigo-500"
-                  >
-                    Review court booking requests
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      )}
     </div>
   );
 }

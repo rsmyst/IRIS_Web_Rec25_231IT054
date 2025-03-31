@@ -4,6 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 
+interface TimeSlot {
+  startTime: string;
+  endTime: string;
+  isAvailable: boolean;
+  waitlistCount: number;
+}
+
 interface Infrastructure {
   _id: string;
   name: string;
@@ -24,9 +31,12 @@ export default function InfrastructurePage() {
     null
   );
   const [bookingDate, setBookingDate] = useState("");
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const [selectedSlot, setSelectedSlot] = useState<TimeSlot | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
+  const [checkingAvailability, setCheckingAvailability] = useState(false);
+  const [joinWaitlist, setJoinWaitlist] = useState(false);
+  const [showWaitlistOption, setShowWaitlistOption] = useState(false);
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -55,11 +65,39 @@ export default function InfrastructurePage() {
     fetchInfrastructure();
   }, []);
 
+  // Fetch available time slots when date and infrastructure are selected
+  useEffect(() => {
+    const fetchAvailability = async () => {
+      if (!selectedInfra || !bookingDate) return;
+
+      try {
+        setCheckingAvailability(true);
+        const response = await fetch(
+          `/api/infrastructure/booking?date=${bookingDate}&infrastructureId=${selectedInfra._id}`,
+          { method: "HEAD" }
+        );
+
+        if (!response.ok) {
+          throw new Error("Failed to check availability");
+        }
+
+        const data = await response.json();
+        setAvailableSlots(data.availableSlots || []);
+      } catch (error: any) {
+        setError(error.message || "Failed to check availability");
+      } finally {
+        setCheckingAvailability(false);
+      }
+    };
+
+    fetchAvailability();
+  }, [selectedInfra, bookingDate]);
+
   // Handle infrastructure booking
   const handleBookInfrastructure = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!selectedInfra) return;
+    if (!selectedInfra || !selectedSlot) return;
 
     try {
       const response = await fetch("/api/infrastructure/booking", {
@@ -70,12 +108,20 @@ export default function InfrastructurePage() {
         body: JSON.stringify({
           infrastructureId: selectedInfra._id,
           date: bookingDate,
-          startTime,
-          endTime,
+          startTime: selectedSlot.startTime,
+          endTime: selectedSlot.endTime,
+          joinWaitlist,
         }),
       });
 
       const data = await response.json();
+
+      // Handle waitlist option
+      if (response.status === 409 && data.waitlistAvailable) {
+        setShowWaitlistOption(true);
+        setError(data.message);
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to book infrastructure");
@@ -89,14 +135,31 @@ export default function InfrastructurePage() {
     }
   };
 
+  const handleWaitlistOptionYes = () => {
+    setJoinWaitlist(true);
+    setShowWaitlistOption(false);
+    // Re-submit the form with joinWaitlist=true
+    handleBookInfrastructure(new Event("submit") as any);
+  };
+
+  const handleSlotSelection = (slot: TimeSlot) => {
+    setSelectedSlot(slot);
+    // Reset waitlist related states
+    setJoinWaitlist(false);
+    setShowWaitlistOption(false);
+    setError(null);
+  };
+
   const openBookingModal = (item: Infrastructure) => {
     // Reset form and set selected infrastructure
     setSelectedInfra(item);
     setBookingDate("");
-    setStartTime("");
-    setEndTime("");
+    setSelectedSlot(null);
+    setAvailableSlots([]);
     setError(null);
     setModalOpen(true);
+    setJoinWaitlist(false);
+    setShowWaitlistOption(false);
   };
 
   const closeModal = () => {
@@ -106,7 +169,17 @@ export default function InfrastructurePage() {
 
   // Format time for display
   const formatTime = (timeString: string) => {
-    return timeString; // Can be enhanced to format time in a more user-friendly way
+    try {
+      const [hours, minutes] = timeString.split(":").map(Number);
+      const date = new Date();
+      date.setHours(hours, minutes, 0, 0);
+      return date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (e) {
+      return timeString;
+    }
   };
 
   // Check if current time is within operating hours
@@ -126,7 +199,7 @@ export default function InfrastructurePage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-accent"></div>
       </div>
     );
   }
@@ -137,9 +210,9 @@ export default function InfrastructurePage() {
         Sports Facilities & Courts
       </h1>
 
-      {error && (
+      {error && !showWaitlistOption && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
+          className="bg-red-900/30 border border-red-400/50 text-red-100 px-4 py-3 rounded relative mb-6"
           role="alert"
         >
           <span className="block sm:inline">{error}</span>
@@ -150,22 +223,20 @@ export default function InfrastructurePage() {
         {infrastructure.map((item) => (
           <div
             key={item._id}
-            className="bg-white shadow overflow-hidden sm:rounded-lg"
+            className="card shadow overflow-hidden sm:rounded-lg"
           >
-            <div className="px-4 py-5 sm:px-6 bg-gray-50 flex justify-between items-center">
+            <div className="px-4 py-5 sm:px-6 flex justify-between items-center border-b border-border-color">
               <div>
-                <h3 className="text-lg leading-6 font-medium text-gray-900">
-                  {item.name}
-                </h3>
-                <p className="mt-1 max-w-2xl text-sm text-gray-500">
+                <h3 className="text-lg leading-6 font-medium">{item.name}</h3>
+                <p className="mt-1 max-w-2xl text-sm text-gray-400">
                   {item.location}
                 </p>
               </div>
               <span
                 className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
                   item.availability && isOpenNow(item.operatingHours)
-                    ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                    ? "bg-green-900/30 text-green-300"
+                    : "bg-red-900/30 text-red-300"
                 }`}
               >
                 {item.availability && isOpenNow(item.operatingHours)
@@ -173,49 +244,49 @@ export default function InfrastructurePage() {
                   : "Closed"}
               </span>
             </div>
-            <div className="border-t border-gray-200">
+            <div className="border-b border-border-color">
               <dl>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">Status</dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                <div className="px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-400">Status</dt>
+                  <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
                     <span
                       className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         item.availability
-                          ? "bg-green-100 text-green-800"
-                          : "bg-red-100 text-red-800"
+                          ? "bg-green-900/30 text-green-300"
+                          : "bg-red-900/30 text-red-300"
                       }`}
                     >
                       {item.availability ? "Available" : "Unavailable"}
                     </span>
                   </dd>
                 </div>
-                <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
+                <div className="border-t border-border-color px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-400">
                     Capacity
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
                     {item.capacity} people
                   </dd>
                 </div>
-                <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                  <dt className="text-sm font-medium text-gray-500">
+                <div className="border-t border-border-color px-4 py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                  <dt className="text-sm font-medium text-gray-400">
                     Operating Hours
                   </dt>
-                  <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <dd className="mt-1 text-sm sm:mt-0 sm:col-span-2">
                     {formatTime(item.operatingHours.open)} -{" "}
                     {formatTime(item.operatingHours.close)}
                   </dd>
                 </div>
               </dl>
             </div>
-            <div className="px-4 py-4 bg-white">
+            <div className="px-4 py-4">
               <button
                 onClick={() => openBookingModal(item)}
                 disabled={!item.availability}
                 className={`w-full py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white ${
                   item.availability
-                    ? "bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                    : "bg-gray-300 cursor-not-allowed"
+                    ? "btn-accent hover:bg-accent-hover"
+                    : "bg-gray-700 cursor-not-allowed"
                 }`}
               >
                 Book {item.name}
@@ -233,7 +304,7 @@ export default function InfrastructurePage() {
               className="fixed inset-0 transition-opacity"
               aria-hidden="true"
             >
-              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              <div className="absolute inset-0 bg-black opacity-75"></div>
             </div>
 
             <span
@@ -243,112 +314,163 @@ export default function InfrastructurePage() {
               &#8203;
             </span>
 
-            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+            <div className="inline-block align-bottom modal-content rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+              <div className="px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                 <div className="sm:flex sm:items-start">
                   <div className="mt-3 text-center sm:mt-0 sm:text-left w-full">
                     <h3
-                      className="text-lg leading-6 font-medium text-gray-900"
+                      className="text-lg leading-6 font-medium"
                       id="modal-title"
                     >
                       Book {selectedInfra.name}
                     </h3>
                     <div className="mt-2">
-                      <p className="text-sm text-gray-500">
-                        Operating Hours: {selectedInfra.operatingHours.open} -{" "}
-                        {selectedInfra.operatingHours.close}
+                      <p className="text-sm text-gray-400">
+                        Operating Hours:{" "}
+                        {formatTime(selectedInfra.operatingHours.open)} -{" "}
+                        {formatTime(selectedInfra.operatingHours.close)}
                       </p>
                     </div>
-                    <div className="mt-4">
-                      {error && (
-                        <div
-                          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"
-                          role="alert"
-                        >
-                          <span className="block sm:inline">{error}</span>
-                        </div>
-                      )}
 
-                      <form
-                        onSubmit={handleBookInfrastructure}
-                        className="space-y-4"
-                      >
-                        <div>
-                          <label
-                            htmlFor="bookingDate"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Date
-                          </label>
-                          <input
-                            type="date"
-                            name="bookingDate"
-                            id="bookingDate"
-                            min={new Date().toISOString().split("T")[0]}
-                            value={bookingDate}
-                            onChange={(e) => setBookingDate(e.target.value)}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="startTime"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            Start Time
-                          </label>
-                          <input
-                            type="time"
-                            name="startTime"
-                            id="startTime"
-                            min={selectedInfra.operatingHours.open}
-                            max={selectedInfra.operatingHours.close}
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                          />
-                        </div>
-
-                        <div>
-                          <label
-                            htmlFor="endTime"
-                            className="block text-sm font-medium text-gray-700"
-                          >
-                            End Time
-                          </label>
-                          <input
-                            type="time"
-                            name="endTime"
-                            id="endTime"
-                            min={startTime || selectedInfra.operatingHours.open}
-                            max={selectedInfra.operatingHours.close}
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                            required
-                          />
-                        </div>
-
-                        <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                    {/* Show Waitlist Option Dialog */}
+                    {showWaitlistOption && (
+                      <div className="mt-4 p-4 bg-indigo-900/20 border border-indigo-500/30 rounded-md">
+                        <p className="text-sm mb-3">{error}</p>
+                        <div className="flex justify-end space-x-3">
                           <button
-                            type="submit"
-                            className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+                            type="button"
+                            onClick={() => setShowWaitlistOption(false)}
+                            className="py-1 px-3 border border-gray-600 rounded text-sm"
                           >
-                            Submit Request
+                            No, Cancel
                           </button>
                           <button
                             type="button"
-                            onClick={closeModal}
-                            className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:w-auto sm:text-sm"
+                            onClick={handleWaitlistOptionYes}
+                            className="py-1 px-3 btn-accent rounded text-sm"
                           >
-                            Cancel
+                            Yes, Join Waitlist
                           </button>
                         </div>
-                      </form>
-                    </div>
+                      </div>
+                    )}
+
+                    {!showWaitlistOption && (
+                      <div className="mt-4">
+                        {error && (
+                          <div
+                            className="bg-red-900/30 border border-red-400/50 text-red-100 px-4 py-3 rounded relative mb-4"
+                            role="alert"
+                          >
+                            <span className="block sm:inline">{error}</span>
+                          </div>
+                        )}
+
+                        <form className="space-y-4">
+                          <div>
+                            <label
+                              htmlFor="bookingDate"
+                              className="block text-sm font-medium text-gray-300"
+                            >
+                              Select Date
+                            </label>
+                            <input
+                              type="date"
+                              name="bookingDate"
+                              id="bookingDate"
+                              min={new Date().toISOString().split("T")[0]}
+                              value={bookingDate}
+                              onChange={(e) => setBookingDate(e.target.value)}
+                              className="mt-1 block w-full rounded-md py-2 px-3 focus:outline-none focus:ring-accent focus:border-accent sm:text-sm"
+                              required
+                            />
+                          </div>
+
+                          {bookingDate && (
+                            <div>
+                              <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Select a 1-hour Time Slot
+                              </label>
+
+                              {checkingAvailability ? (
+                                <div className="flex justify-center my-4">
+                                  <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-accent"></div>
+                                </div>
+                              ) : availableSlots.length > 0 ? (
+                                <div className="grid grid-cols-2 gap-2 mt-2 max-h-60 overflow-y-auto">
+                                  {availableSlots.map((slot, index) => (
+                                    <button
+                                      key={index}
+                                      type="button"
+                                      onClick={() => handleSlotSelection(slot)}
+                                      disabled={
+                                        !slot.isAvailable && !joinWaitlist
+                                      }
+                                      className={`py-2 px-3 rounded-md text-sm font-medium text-center
+                                        ${
+                                          selectedSlot === slot
+                                            ? "ring-2 ring-accent"
+                                            : ""
+                                        }
+                                        ${
+                                          slot.isAvailable
+                                            ? "bg-green-900/30 text-green-100 hover:bg-green-900/50"
+                                            : slot.waitlistCount > 0
+                                            ? "bg-yellow-900/30 text-yellow-100"
+                                            : "bg-red-900/30 text-red-100"
+                                        }
+                                        ${
+                                          !slot.isAvailable && !joinWaitlist
+                                            ? "opacity-50 cursor-not-allowed"
+                                            : ""
+                                        }
+                                      `}
+                                    >
+                                      {formatTime(slot.startTime)} -{" "}
+                                      {formatTime(slot.endTime)}
+                                      {!slot.isAvailable &&
+                                        slot.waitlistCount > 0 && (
+                                          <span className="block text-xs mt-1">
+                                            Waitlist: {slot.waitlistCount}
+                                          </span>
+                                        )}
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-gray-400">
+                                  No time slots available for the selected date.
+                                </p>
+                              )}
+                            </div>
+                          )}
+
+                          <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                            <button
+                              type="button"
+                              disabled={!selectedSlot}
+                              onClick={handleBookInfrastructure}
+                              className={`w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 text-base font-medium text-white 
+                                ${
+                                  selectedSlot
+                                    ? "btn-accent hover:bg-accent-hover"
+                                    : "bg-gray-700 cursor-not-allowed"
+                                } 
+                                sm:ml-3 sm:w-auto sm:text-sm`}
+                            >
+                              Submit Request
+                            </button>
+                            <button
+                              type="button"
+                              onClick={closeModal}
+                              className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-600 shadow-sm px-4 py-2 bg-transparent text-base font-medium hover:bg-gray-800 sm:mt-0 sm:w-auto sm:text-sm"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </form>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

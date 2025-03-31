@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
+import Link from "next/link";
 
 interface InfrastructureBooking {
   _id: string;
@@ -60,15 +61,15 @@ export default function InfrastructureBookingsPage() {
   const getStatusClass = (status: string) => {
     switch (status) {
       case "approved":
-        return "bg-green-100 text-green-800";
+        return "bg-green-800 text-green-100";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-800 text-yellow-100";
       case "rejected":
-        return "bg-red-100 text-red-800";
+        return "bg-red-800 text-red-100";
       case "canceled":
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-800 text-gray-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-gray-800 text-gray-300";
     }
   };
 
@@ -108,8 +109,8 @@ export default function InfrastructureBookingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
+      <div className="bg-gray-900 min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
       </div>
     );
   }
@@ -120,14 +121,22 @@ export default function InfrastructureBookingsPage() {
   };
 
   return (
-    <div>
-      <h1 className="text-3xl font-semibold mb-6">
-        My Court & Facility Bookings
-      </h1>
+    <div className="bg-gray-900 text-gray-100 min-h-screen p-6 rounded-lg">
+      <div className="mb-6 flex justify-between items-center">
+        <h1 className="text-3xl font-semibold text-purple-300">
+          My Court & Facility Bookings
+        </h1>
+        <Link
+          href="/dashboard"
+          className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-md text-white text-sm"
+        >
+          Back to Dashboard
+        </Link>
+      </div>
 
       {error && (
         <div
-          className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6"
+          className="bg-red-900 border border-red-700 text-white px-4 py-3 rounded-md mb-6"
           role="alert"
         >
           <span className="block sm:inline">{error}</span>
@@ -135,100 +144,119 @@ export default function InfrastructureBookingsPage() {
       )}
 
       {bookings.length === 0 ? (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg p-6">
-          <p className="text-gray-600">
-            You don't have any court or facility bookings yet.
+        <div className="bg-gray-800 shadow-md rounded-lg border border-gray-700 p-6 text-center">
+          <p className="text-gray-400">
+            You do not have any court or facility bookings yet.
           </p>
+          <Link
+            href="/dashboard/infrastructure"
+            className="inline-block mt-4 px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-white"
+          >
+            Book a Court
+          </Link>
         </div>
       ) : (
-        <div className="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Facility
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Date
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Time Slot
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Remarks
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {bookings.map((booking) => (
-                  <tr key={booking._id}>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                      {booking.infrastructure?.name || "Unknown Facility"}{" "}
-                      <br />
-                      <span className="text-xs text-gray-500">
-                        {booking.infrastructure?.location}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {formatDate(booking.date)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {booking.startTime} - {booking.endTime}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span
-                        className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(
-                          booking.status
-                        )}`}
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-gray-800 border border-gray-700 rounded-lg overflow-hidden shadow-md">
+            <thead>
+              <tr>
+                <th
+                  scope="col"
+                  className="px-6 py-3 border-b border-gray-700 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Facility
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 border-b border-gray-700 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Date
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 border-b border-gray-700 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Time Slot
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 border-b border-gray-700 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Status
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 border-b border-gray-700 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Remarks
+                </th>
+                <th
+                  scope="col"
+                  className="px-6 py-3 border-b border-gray-700 text-left text-xs font-medium text-gray-400 uppercase tracking-wider"
+                >
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-700">
+              {bookings.map((booking) => (
+                <tr key={booking._id} className="hover:bg-gray-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-200">
+                    {booking.infrastructure?.name || "Unknown Facility"} <br />
+                    <span className="text-xs text-gray-400">
+                      {booking.infrastructure?.location}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {formatDate(booking.date)}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {booking.startTime} - {booking.endTime}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <span
+                      className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusClass(
+                        booking.status
+                      )}`}
+                    >
+                      {booking.status.charAt(0).toUpperCase() +
+                        booking.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
+                    {booking.remarks || "-"}
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm">
+                    {canCancelBooking(booking) && (
+                      <button
+                        onClick={() => handleCancelBooking(booking._id)}
+                        className="text-red-400 hover:text-red-300"
                       >
-                        {booking.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {booking.remarks || "-"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      {canCancelBooking(booking) && (
-                        <button
-                          onClick={() => handleCancelBooking(booking._id)}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Cancel
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        Cancel
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
+
+      <div className="mt-8 bg-gray-800 shadow-md rounded-lg border border-gray-700 p-6">
+        <h2 className="text-xl font-medium text-purple-300 mb-4">
+          Looking for More Court Time?
+        </h2>
+        <p className="text-gray-400 mb-4">
+          Browse our available courts and facilities to make a new booking.
+        </p>
+        <Link
+          href="/dashboard/infrastructure"
+          className="inline-block px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-md text-white"
+        >
+          View Available Courts
+        </Link>
+      </div>
     </div>
   );
 }
