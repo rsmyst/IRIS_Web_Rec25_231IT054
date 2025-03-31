@@ -4,7 +4,7 @@ This project is a web-based platform designed to streamline the management of sp
 
 ### Installation + Demo Run video
 
-[!demo][IRIS_WebRecs2025_231IT054.mp4]
+[DemoVideo](IRIS_WebRecs2025_231IT054.mp4)
 
 ## Implemented Features
 
