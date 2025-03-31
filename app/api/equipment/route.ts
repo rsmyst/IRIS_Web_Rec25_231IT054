@@ -5,7 +5,7 @@ import Equipment from "@/models/Equipment";
 import { authOptions } from "../auth/[...nextauth]/route";
 
 // GET all equipment
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user) {
@@ -18,8 +18,7 @@ export async function GET(request: NextRequest) {
     await connectToDB();
 
     // Build base query for equipment
-    let query: any =
-      session.user.role === "admin" ? {} : { user: session.user.id };
+    const query = {};
 
     const equipment = await Equipment.find(query);
 

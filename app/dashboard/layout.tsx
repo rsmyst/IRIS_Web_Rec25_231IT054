@@ -16,6 +16,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     bookings: 0,
   });
 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
@@ -72,9 +74,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-screen">
       {/* Sidebar Navigation */}
-      <div className="w-64 bg-card-bg  flex flex-col">
+      <div
+        className={` w-50 bg-card-bg flex flex-col fixed md:static z-50 transform transition-transform duration-300 ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+        } md:translate-x-0`}
+      >
         <div className="p-4 ">
-          <h2 className="text-lg font-semibold">IRIS Booking System</h2>
+          <h2 className="text-lg font-semibold">IRIS Infra Booking System</h2>
         </div>
         <nav className="flex-1 overflow-y-auto p-4">
           <div className="mb-6">
@@ -196,8 +202,26 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         </div>
       </div>
 
+      {/* Sidebar Overlay for Mobile */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-gray-800 bg-opacity-75 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
+
+      {/* Sidebar Toggle Button for Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-zinc-900 text-white p-1 flex justify-center">
+        <button
+          className="text-white p-2 rounded-md"
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+        >
+          {isSidebarOpen ? "Close Menu" : "Menu"}
+        </button>
+      </div>
+
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ">
         {/* Header */}
         <header className="bg-card-bg ">
           <div className="flex justify-between items-center px-6 py-4">
